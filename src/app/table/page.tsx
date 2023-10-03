@@ -2,42 +2,32 @@
 import React, { useEffect, useState } from "react";
 import ExcelJS from "exceljs";
 import Button from '@/src/components/button'
+import axios from "axios";
 
 const page: React.FC = () => {
 
   useEffect(() => {
-    createExcelFile()
+    // createExcelFile()
+    // getData()
   }, [])
-  const createExcelFile = async () => {
+
+  const getData = async () => {
+    try {
+
+      axios.get('http://localhost:9000/franchiseeJob/haris/month/jan').then(response => {
+
+        response = response.data;
+        createExcelFile(response)
+      })
+
+    } catch (error) {
+      console.log("error is ", error)
+    }
+  }
+  const createExcelFile = async (data) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Sheet 1');
 
-    const data = {
-      totalAmount: {
-        "private": 40000.0,
-        "collected": 23343.0,
-        "fee": 343.0
-      },
-      data: [
-        {
-          collected: "",
-          fee: ""
-        },
-        {
-          collected: "-",
-          fee: "-"
-        },
-        {
-          date: "30-jun",
-          state: "sc",
-          customer: "name",
-          private: 34433.0,
-          sqFtCharges: 0.055,
-          collected: 3344.4,
-          fee: 233.0
-        },
-      ]
-    }
     // Merge cells for a header
     // worksheet.mergeCells('A1:D1');
 
@@ -248,13 +238,13 @@ const page: React.FC = () => {
       }
 
 
-      worksheet.getCell('J' + i).value = { formula: `((E${i}+F${i}+G${i})*H${i})+I${i}`,result :data?.data[i-6]?.collected };
+      worksheet.getCell('J' + i).value = { formula: `((E${i}+F${i}+G${i})*H${i})+I${i}`, result: data?.data[i - 6]?.collected };
       worksheet.getCell('J' + i).font = { name: 'Arial', size: 10, };
       worksheet.getCell('J' + i).numFmt = '#,##0.00_);[Red](#,##0.00); "-"';;
 
 
       // worksheet.getCell('K' + i).value = { formula: `J${i}*K$5`,additionalValue:data.data[i-6].fee };
-      worksheet.getCell('K' + i).value = { formula: `J${i}*K$5`,result:data?.data[i-6]?.fee };
+      worksheet.getCell('K' + i).value = { formula: `J${i}*K$5`, result: data?.data[i - 6]?.fee };
       worksheet.getCell('K' + i).font = { name: 'Arial', size: 10, };
       worksheet.getCell('K' + i).numFmt = '#,##0.00_);[Red](#,##0.00); "-"';;
 
@@ -276,41 +266,53 @@ const page: React.FC = () => {
     }
 
 
-    const headerRow = worksheet.getRow(30);
-    headerRow.eachCell((cell) => {
-      cell.border = {
-        bottom: { style: 'thin', color: { argb: '000000' } }, // Bottom border
-      };
-    });
+    const startCell = worksheet.getCell('A30');
+    const endCell = worksheet.getCell('P30');
+
+    // Loop through each cell in the range and add a border
+    for (let row = startCell.row; row <= endCell.row; row++) {
+      for (let col = startCell.col; col <= endCell.col; col++) {
+        const cell = worksheet.getCell(row, col);
+        cell.border = {
+          top: { style: 'thin', color: { argb: '000000' } },
+        };
+      }
+    }
+    // Add a border to the defined range
+    // worksheet.getCell(startCell.address + ':' + endCell.address).border = {
+    //   top: { style: 'thin', color: { argb: '000000' } },
+    // };
+
 
 
     worksheet.getCell('D30').value = "Totals:"
+    worksheet.getCell('D30').alignment = {horizontal:'right'}
     worksheet.getCell("D30").font = { name: 'Arial', size: 10, };
 
-    worksheet.getCell('E30').value = { formula: `SUM(E6:E29)`,result:data.totalAmount.private};
+    worksheet.getCell('E30').value = { formula: `SUM(E6:E29)`, result: data.totalAmount.private };
     worksheet.getCell("E30").font = { name: 'Arial', size: 10, };
     worksheet.getCell('E30').numFmt = '#,##0.00_);[Red](#,##0.00); "-"';;
-    
-    worksheet.getCell('F30').value = { formula: `SUM(F6:F29)`,result:data.totalAmount.public};
+
+    worksheet.getCell('F30').value = { formula: `SUM(F6:F29)`, result: data.totalAmount.public };
     worksheet.getCell("F30").font = { name: 'Arial', size: 10, };
     worksheet.getCell('F30').numFmt = '#,##0.00_);[Red](#,##0.00); "-"';
-    
-    worksheet.getCell('G30').value = { formula: `SUM(G6:G29)`,result:data.totalAmount.suportField};
+
+    worksheet.getCell('G30').value = { formula: `SUM(G6:G29)`, result: data.totalAmount.suportField };
     worksheet.getCell("G30").font = { name: 'Arial', size: 10, };
     worksheet.getCell('G30').numFmt = '#,##0.00_);[Red](#,##0.00); "-"';
 
-    
-    worksheet.getCell('I30').value = { formula: `SUM(I6:I29)`,result:data.totalAmount.mobilization};
+
+    worksheet.getCell('I30').value = { formula: `SUM(I6:I29)`, result: data.totalAmount.mobilization };
     worksheet.getCell("I30").font = { name: 'Arial', size: 10, };
     worksheet.getCell('I30').numFmt = '#,##0.00_);[Red](#,##0.00); "-"';
 
-    
-    worksheet.getCell('J30').value = { formula: `SUM(J6:J29)`,result:data.totalAmount.collected};
+
+    worksheet.getCell('J30').value = { formula: `SUM(J6:J29)`, result: data.totalAmount.collected };
     worksheet.getCell("J30").font = { name: 'Arial', size: 10, };
     worksheet.getCell('J30').numFmt = '#,##0.00_);[Red](#,##0.00); "-"';
 
-    
-    worksheet.getCell('K30').value = { formula: `SUM(K6:K29)`,result:data.totalAmount.fee};
+
+    worksheet.getCell('K30').value = { formula: `SUM(K6:K29)`, result: data.totalAmount.fee };
     worksheet.getCell("K30").font = { name: 'Arial', size: 10, };
     worksheet.getCell('K30').numFmt = '#,##0.00_);[Red](#,##0.00); "-"';
 
@@ -333,7 +335,7 @@ const page: React.FC = () => {
     <div>
       <div className="flex justify-center py-4">
 
-        {/* <p className="text-[#2B9161] border-2 border-[#2B9161] p-2 rounded-lg  text-2xl " role="button" onClick={createExcelFile}>download report</p> */}
+        <p className="text-[#2B9161] border-2 border-[#2B9161] p-2 rounded-lg  text-2xl " role="button" onClick={getData}>download report</p>
       </div>
     </div>
   );
